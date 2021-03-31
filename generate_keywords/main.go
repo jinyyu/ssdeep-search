@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"log"
@@ -52,13 +53,26 @@ func GenerateKeyWords(record SsdeepRecord) (err error) {
 }
 
 func insertBlockSizeKeyword(blocksize uint32, hash string, md5 string) (err error) {
+	hash = ssdeep_search.EliminateSequences(hash)
 	keywords := ssdeep_search.GenerateKeys(hash)
-	for _, keyword := range keywords {
-		_, err = db.Exec("insert into key_word_index(block_size, key, md5) values ($1, $2, $3)", blocksize, keyword, md5)
-		if err != nil {
-			return
-		}
+	if len(keywords) == 0 {
+		return nil
 	}
+
+	sql := "insert into key_word_index(block_size, key, md5) values "
+	args := make([]interface{}, 0)
+	seq := 1
+
+	for i, keyword := range keywords {
+		if i > 0 {
+			sql += ","
+		}
+
+		sql += fmt.Sprintf("($%d, $%d, $%d)", seq, seq+1, seq+2)
+		seq += 3
+		args = append(args, blocksize, keyword, md5)
+	}
+	_, err = db.Exec(sql, args...)
 	return
 }
 
@@ -82,6 +96,8 @@ func main() {
 			}
 			startMD5 = record.MD5
 		}
+
+		println("total = ", total)
 	}
 
 	log.Println("ssdeep records ", total)

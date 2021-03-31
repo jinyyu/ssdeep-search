@@ -19,3 +19,32 @@ func TestGenerateKeys(t *testing.T) {
 		t.Error("ERROR")
 	}
 }
+
+func TestEliminateSequences(t *testing.T) {
+	type Test struct {
+		in  string
+		out string
+	}
+
+	tests := []Test{
+		{
+			"12LLLL99999123566787877788",
+			"12LLL999123566787877788",
+		},
+		{
+			"LLLL123",
+			"LLL123",
+		},
+		{
+			"233333333333333333333333333333333333333333333333333333333",
+			"2333",
+		},
+	}
+
+	for i, test := range tests {
+		output := EliminateSequences(test.in)
+		if output != test.out {
+			t.Errorf("i = %d, output=%s, woutput=%s", i, output, test.out)
+		}
+	}
+}

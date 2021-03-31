@@ -39,3 +39,29 @@ func ParseSsdeep(ssdeep string) (sign *SsdeepSign, err error) {
 	}
 	return
 }
+
+//删除长度大于3的连续相同序列
+func EliminateSequences(hash string) string {
+	if len(hash) == 0 {
+		return hash
+	}
+
+	ret := make([]byte, 0, len(hash))
+	prev := hash[0]
+	ret = append(ret, prev)
+	seq := 1
+	for i := 1; i < len(hash); i++ {
+		current := hash[i]
+		if current == prev {
+			seq += 1
+		} else {
+			seq = 1
+		}
+
+		if seq <= 3 {
+			ret = append(ret, current)
+		}
+		prev = current
+	}
+	return string(ret)
+}
